@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, ArrowRight, Zap } from 'lucide-react';
+import { Menu, X, ArrowRight, Zap, Sparkles } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import ThemeToggle from './ThemeToggle';
@@ -87,6 +87,15 @@ const Navbar = () => {
                                     <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 rounded-full bg-gradient-to-r from-brand-500 to-accent-500 transition-all duration-300 group-hover:w-full" />
                                 </Link>
                             ))}
+
+                            {/* Demo Mode Direct Link */}
+                            <Link
+                                to="/login"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all shadow-sm"
+                            >
+                                <Sparkles size={12} className="text-amber-400" />
+                                <span>Demo Mode</span>
+                            </Link>
 
                             {/* Theme Toggle */}
                             <ThemeToggle variant="pill" />
@@ -175,6 +184,13 @@ const Navbar = () => {
                                 ))}
 
                                 <div className={`border-t pt-3 mt-3 space-y-2 ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
+                                    <button
+                                        onClick={() => handleNavClick('/login')}
+                                        className="flex items-center gap-2 w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold border border-amber-500/40 bg-amber-500/10 text-amber-300"
+                                    >
+                                        <Sparkles size={14} className="text-amber-400" />
+                                        <span>Explore Demo Mode</span>
+                                    </button>
                                     {!role ? (
                                         <>
                                             <button

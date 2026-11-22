@@ -5,7 +5,7 @@ import App from './App.jsx'
 import { ToastProvider } from './context/ToastContext'
 import { UserProvider } from './context/UserContext'
 import { ThemeProvider } from './context/ThemeContext'
-import { initDemoMode } from './demo/demoMode'
+import { initDemoMode } from './demo/demoMode.js'
 
 // Initialize Demo Mode interception if enabled
 initDemoMode();

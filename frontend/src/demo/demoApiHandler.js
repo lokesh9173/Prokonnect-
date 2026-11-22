@@ -1,4 +1,5 @@
 import {
+    getDemoStore,
     demoAuthenticate,
     demoRegister,
     demoGetUserById,
@@ -20,22 +21,44 @@ import {
 } from './demoStorage.js';
 
 /**
- * Extracts the user ID from a Bearer token.
- * In demo mode, tokens have the format 'demo-jwt-token-<userId>-<timestamp>'
- * or 'demo-token-<userId>'.
+ * Extracts the user ID from Authorization header or active browser session.
+ * Guaranteed to return a valid existing user _id from demo storage.
  */
 function extractUserIdFromToken(authHeader) {
-    if (!authHeader) return null;
-    const match = authHeader.match(/Bearer\s+demo-(?:jwt-)?token-([a-zA-Z0-9_-]+)/);
-    if (match) {
-        // Strip trailing timestamp if present
-        const parts = match[1].split('-');
-        if (parts.length >= 3 && !isNaN(parts[parts.length - 1])) {
-            return parts.slice(0, -1).join('-');
+    const store = getDemoStore();
+
+    // 1. Check if the Authorization header contains any known user._id
+    if (authHeader && typeof authHeader === 'string') {
+        for (const u of store.users) {
+            if (authHeader.includes(u._id)) {
+                return u._id;
+            }
         }
-        return match[1];
     }
-    return null;
+
+    // 2. Fall back to active user stored in localStorage
+    try {
+        if (typeof localStorage !== 'undefined') {
+            const raw = localStorage.getItem('prokonnect_user');
+            if (raw) {
+                const u = JSON.parse(raw);
+                if (u && u._id) {
+                    const match = store.users.find(usr => usr._id === u._id);
+                    if (match) return match._id;
+                }
+            }
+            const activeRole = localStorage.getItem('prokonnect_role');
+            if (activeRole) {
+                const roleUser = store.users.find(usr => usr.role === activeRole);
+                if (roleUser) return roleUser._id;
+            }
+        }
+    } catch {
+        // ignore
+    }
+
+    // 3. Fallback to first user in store
+    return store.users[0]?._id || 'demo-biz-1';
 }
 
 /**
@@ -152,6 +175,13 @@ export async function handleDemoApiRequest(input, init = {}) {
                 const updated = demoUpdateUserProfile(currentUserId, body);
                 return jsonResponse(updated, 200);
             }
+        }
+
+        if (pathname === '/api/users/change-password' && (method === 'PUT' || method === 'POST')) {
+            if (body.newPassword) {
+                demoUpdateUserProfile(currentUserId, { newPassword: body.newPassword });
+            }
+            return jsonResponse({ message: 'Password updated successfully' }, 200);
         }
 
         if (pathname === '/api/users/settings') {

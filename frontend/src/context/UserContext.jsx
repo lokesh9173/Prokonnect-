@@ -93,13 +93,12 @@ export const UserProvider = ({ children }) => {
         }
     };
 
-    const register = async (name, email, password) => {
+    const register = async (name, email, password, role = 'influencer') => {
         try {
-            // Defaulting to 'influencer' initially, user can change or we can pass it if we move role selection
             const res = await fetch(getApiUrl('/api/auth/register'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, password, role: 'influencer' }),
+                body: JSON.stringify({ name, email, password, role }),
             });
 
             let data;
@@ -115,6 +114,10 @@ export const UserProvider = ({ children }) => {
             }
 
             setUser(data);
+            if (data.role) {
+                setRole(data.role);
+                localStorage.setItem('prokonnect_role', data.role);
+            }
             addToast('Account created successfully!', 'success');
             return true;
         } catch (error) {
@@ -131,7 +134,8 @@ export const UserProvider = ({ children }) => {
     const logout = () => {
         setUser(null);
         setRole(null);
-        localStorage.clear();
+        localStorage.removeItem('prokonnect_user');
+        localStorage.removeItem('prokonnect_role');
         addToast('Logged out successfully', 'info');
         // Optional: Redirect to login is handled by protected routes or component logic
     };

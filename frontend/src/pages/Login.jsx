@@ -6,7 +6,7 @@ import { useUser } from '../context/UserContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 import ThemeToggle from '../components/ThemeToggle';
-import { setDemoMode } from '../demo/demoMode';
+import { setDemoMode, loginAsDemoRole } from '../demo/demoMode.js';
 
 const DEMO_ACCOUNTS = [
     {
@@ -30,7 +30,7 @@ const DEMO_ACCOUNTS = [
 const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { login } = useUser();
+    const { login, setUser } = useUser();
     const { isDark } = useTheme();
     const { addToast } = useToast();
 
@@ -44,12 +44,19 @@ const Login = () => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    const handleFillDemo = (acc, autoSubmit = true) => {
+    const handleQuickDemoLogin = (role) => {
         setErrorMessage('');
-        setFormData({ email: acc.email, password: acc.password });
         setDemoMode(true);
-        if (autoSubmit) {
-            handleLoginSubmit(acc.email, acc.password);
+        const authData = loginAsDemoRole(role);
+        setUser(authData);
+        addToast(`Signed in as Demo ${role === 'business' ? 'Business (Vogue Apparel)' : 'Influencer (Alex Rivera)'}!`, 'success');
+        const redirectPath = location.state?.from?.pathname;
+        if (redirectPath) {
+            navigate(redirectPath, { replace: true });
+        } else if (role === 'business') {
+            navigate('/business-dashboard', { replace: true });
+        } else {
+            navigate('/influencer-dashboard', { replace: true });
         }
     };
 
@@ -68,6 +75,11 @@ const Login = () => {
             return;
         }
 
+        const cleanEmail = email.trim().toLowerCase();
+        if (cleanEmail.endsWith('.demo') || cleanEmail.includes('demo')) {
+            setDemoMode(true);
+        }
+
         setLoading(true);
         const user = await login(email.trim(), password);
         if (user) {
@@ -82,7 +94,7 @@ const Login = () => {
                 navigate('/role-selection', { replace: true });
             }
         } else {
-            setErrorMessage('Invalid email or password. Please verify your credentials or use a Demo account below.');
+            setErrorMessage('Invalid email or password. Please verify your credentials or use a 1-Click Demo account above.');
         }
         setLoading(false);
     };
@@ -200,45 +212,50 @@ const Login = () => {
                                     <Zap size={13} className="fill-amber-400 text-amber-400" />
                                     <span>Quick Demo Sign-In</span>
                                 </span>
-                                <span className={`text-[10px] font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                                    1-click instant fill
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDark ? 'bg-amber-500/10 text-amber-300' : 'bg-amber-100 text-amber-700'}`}>
+                                    1-Click Direct Login
                                 </span>
                             </div>
 
                             <div className="grid grid-cols-2 gap-2.5">
                                 {DEMO_ACCOUNTS.map((acc) => {
                                     const IconComponent = acc.icon;
-                                    const isSelected = formData.email === acc.email;
                                     return (
                                         <button
                                             key={acc.role}
                                             type="button"
-                                            onClick={() => handleFillDemo(acc, false)}
-                                            className={`group text-left p-2.5 rounded-xl border transition-all duration-200 flex flex-col justify-between relative overflow-hidden ${
-                                                isSelected
-                                                    ? isDark
-                                                        ? 'bg-brand-500/20 border-brand-500/60 ring-1 ring-brand-500/40'
-                                                        : 'bg-brand-50 border-brand-300 ring-1 ring-brand-300'
-                                                    : isDark
-                                                        ? 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.07] hover:border-white/20'
-                                                        : 'bg-slate-50/80 border-slate-200 hover:bg-white hover:border-slate-300 shadow-sm'
+                                            onClick={() => handleQuickDemoLogin(acc.role)}
+                                            className={`group text-left p-3 rounded-xl border transition-all duration-200 flex flex-col justify-between relative overflow-hidden shadow-sm hover:scale-[1.02] cursor-pointer ${
+                                                isDark
+                                                    ? 'bg-white/[0.04] border-white/[0.1] hover:bg-white/[0.08] hover:border-amber-400/50'
+                                                    : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-amber-400/60'
                                             }`}
                                         >
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <div className={`p-1 rounded-lg ${
+                                            <div className="flex items-center gap-2 mb-1.5">
+                                                <div className={`p-1.5 rounded-lg ${
                                                     acc.role === 'influencer'
                                                         ? 'bg-orange-500/20 text-orange-400'
                                                         : 'bg-indigo-500/20 text-indigo-400'
                                                 }`}>
-                                                    <IconComponent size={14} />
+                                                    <IconComponent size={16} />
                                                 </div>
-                                                <span className={`text-xs font-bold leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                    {acc.label}
+                                                <div className="min-w-0">
+                                                    <span className={`block text-xs font-bold leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                        {acc.label}
+                                                    </span>
+                                                    <span className="text-[10px] text-amber-500 font-semibold">
+                                                        {acc.tag}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="mt-1 flex items-center justify-between text-[10px]">
+                                                <span className={`font-mono truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                                    {acc.email}
+                                                </span>
+                                                <span className="font-bold text-amber-400 ml-1 group-hover:translate-x-0.5 transition-transform">
+                                                    →
                                                 </span>
                                             </div>
-                                            <p className={`text-[10px] font-medium truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                                                {acc.email}
-                                            </p>
                                         </button>
                                     );
                                 })}

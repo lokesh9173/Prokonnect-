@@ -26,15 +26,28 @@ const Profile = () => {
 
     useEffect(() => {
         const fetchProfile = async () => {
-            if (!user?.token) return;
+            if (!user) {
+                setLoading(false);
+                return;
+            }
+            if (!user.token) {
+                setProfile(user);
+                setLoading(false);
+                return;
+            }
             try {
                 const res = await fetch(getApiUrl('/api/users/profile'), {
                     headers: { 'Authorization': `Bearer ${user.token}` }
                 });
                 const data = await res.json();
-                if (res.ok) setProfile(data);
-                else throw new Error(data.message);
+                if (res.ok) {
+                    setProfile(data);
+                } else {
+                    setProfile(user);
+                    throw new Error(data.message);
+                }
             } catch (err) {
+                setProfile(prev => prev || user);
                 addToast(err.message || 'Failed to fetch profile', 'error');
             } finally {
                 setLoading(false);
@@ -442,7 +455,15 @@ const Profile = () => {
                         </div>
                     </>
                 ) : (
-                    <div className="text-center py-20 text-slate-500">Failed to load profile.</div>
+                    <div className="text-center py-20">
+                        <p className="text-slate-500 mb-4">No profile data available.</p>
+                        <button
+                            onClick={() => navigate('/login')}
+                            className="px-5 py-2.5 rounded-xl bg-brand-600 text-white font-bold text-sm shadow hover:bg-brand-700 transition-all"
+                        >
+                            Sign In to View Profile
+                        </button>
+                    </div>
                 )}
             </div>
 

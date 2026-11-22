@@ -1,5 +1,5 @@
 import React from 'react';
-import { isDemoMode, setDemoMode, loginAsDemoRole, resetAllDemoData } from '../demo/demoMode';
+import { isDemoMode, setDemoMode, loginAsDemoRole, resetAllDemoData } from '../demo/demoMode.js';
 import { useUser } from '../context/UserContext';
 import { useToast } from '../context/ToastContext';
 import { Sparkles, RefreshCw, LogOut, Repeat } from 'lucide-react';

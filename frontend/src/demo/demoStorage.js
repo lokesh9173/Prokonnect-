@@ -155,7 +155,7 @@ export function demoRegister({ name, email, password, role = 'influencer' }) {
 
 export function demoGetUserById(id) {
     const store = getDemoStore();
-    const user = store.users.find(u => u._id === id);
+    const user = store.users.find(u => u._id === id || u.id === id);
     if (!user) {
         throw new Error('User not found');
     }
@@ -192,6 +192,10 @@ export function demoUpdateUserProfile(userId, updates) {
 
     if (Array.isArray(updates.skills)) {
         current.skills = updates.skills;
+    }
+
+    if (updates.newPassword) {
+        current.passwordHash = hashDemoPassword(updates.newPassword);
     }
 
     store.users[userIndex] = current;
@@ -510,19 +514,25 @@ export function demoUpdateApplicationStatus(applicationId, newStatus, businessId
 
 export function demoUploadAvatar(userId, _filename = 'avatar.png') {
     const store = getDemoStore();
-    const userIndex = store.users.findIndex(u => u._id === userId);
+    const userIndex = store.users.findIndex(u => u._id === userId || u.id === userId);
     const mockAvatarUrl = `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop`;
     
     if (userIndex !== -1) {
         store.users[userIndex].profilePhoto = mockAvatarUrl;
         saveDemoStore(store);
     }
-    return { avatarUrl: mockAvatarUrl };
+    return {
+        success: true,
+        message: 'Profile photo updated successfully',
+        image: mockAvatarUrl,
+        avatarUrl: mockAvatarUrl,
+        url: mockAvatarUrl
+    };
 }
 
 export function demoUploadVerification(userId, _filename = 'verification-doc.png') {
     const store = getDemoStore();
-    const userIndex = store.users.findIndex(u => u._id === userId);
+    const userIndex = store.users.findIndex(u => u._id === userId || u.id === userId);
     const mockUrl = `/api/upload/verification/verification-demo-${Date.now()}.png`;
 
     if (userIndex !== -1) {
@@ -533,7 +543,9 @@ export function demoUploadVerification(userId, _filename = 'verification-doc.png
         saveDemoStore(store);
     }
     return {
-        url: mockUrl,
-        message: 'Verification document uploaded successfully (Demo)'
+        success: true,
+        message: 'Verification document uploaded successfully (Demo)',
+        image: mockUrl,
+        url: mockUrl
     };
 }

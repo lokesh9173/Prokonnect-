@@ -43,37 +43,53 @@ const EditProfile = () => {
 
     useEffect(() => {
         const fetchProfile = async () => {
-            if (!user?.token) return;
+            if (!user) {
+                setLoading(false);
+                return;
+            }
+
+            const populate = (data) => {
+                setFormData(prev => ({
+                    ...prev,
+                    name: data.name || '',
+                    title: data.title || '',
+                    bio: data.bio || '',
+                    location: data.location || '',
+                    website: data.website || '',
+                    email: data.email || '',
+                    phone: data.phone || '',
+                    instagram: data.instagram || '',
+                    linkedin: data.linkedin || '',
+                    niche: data.niche || '',
+                    followers: data.followers || '',
+                    postReach: data.postReach || '',
+                    storyViews: data.storyViews || '',
+                    engagementRate: data.engagementRate || '',
+                    profileVisits: data.profileVisits || '',
+                    country: data.country || '',
+                    city: data.city || '',
+                    ageGroup: data.ageGroup || '',
+                    verificationScreenshots: data.verificationScreenshots || [],
+                    skills: Array.isArray(data.skills) ? data.skills.join(', ') : (data.skills || ''),
+                    currentPassword: '',
+                    newPassword: '',
+                }));
+            };
+
+            populate(user);
+
+            if (!user.token) {
+                setLoading(false);
+                return;
+            }
+
             try {
                 const res = await fetch(getApiUrl('/api/users/profile'), {
                     headers: { 'Authorization': `Bearer ${user.token}` }
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    setFormData({
-                        name: data.name || '',
-                        title: data.title || '',
-                        bio: data.bio || '',
-                        location: data.location || '',
-                        website: data.website || '',
-                        email: data.email || '',
-                        phone: data.phone || '',
-                        instagram: data.instagram || '',
-                        linkedin: data.linkedin || '',
-                        niche: data.niche || '',
-                        followers: data.followers || '',
-                        postReach: data.postReach || '',
-                        storyViews: data.storyViews || '',
-                        engagementRate: data.engagementRate || '',
-                        profileVisits: data.profileVisits || '',
-                        country: data.country || '',
-                        city: data.city || '',
-                        ageGroup: data.ageGroup || '',
-                        verificationScreenshots: data.verificationScreenshots || [],
-                        skills: data.skills ? data.skills.join(', ') : '',
-                        currentPassword: '',
-                        newPassword: '',
-                    });
+                    populate(data);
                 }
             } catch (err) {
                 addToast('Failed to load profile data', 'error');

@@ -12,6 +12,7 @@ import Typewriter from '../components/Typewriter';
 import { useToast } from '../context/ToastContext';
 import { useUser } from '../context/UserContext';
 import { useTheme } from '../context/ThemeContext';
+import { loginAsDemoRole } from '../demo/demoMode.js';
 
 /* ─── Animated Counter ─────────────────────────────────── */
 const Counter = ({ to, suffix = '', prefix = '' }) => {
@@ -166,12 +167,19 @@ const TestimonialCard = ({ name, role, text, avatar, delay }) => (
 const Landing = () => {
     const navigate = useNavigate();
     const { addToast } = useToast();
-    const { login } = useUser();
+    const { login, setUser } = useUser();
     const { isDark } = useTheme();
     const { scrollY } = useScroll();
     const [showDemoVideo, setShowDemoVideo] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [loginLoading, setLoginLoading] = useState(false);
+
+    const handleDirectDemoLogin = (role) => {
+        const authData = loginAsDemoRole(role);
+        setUser(authData);
+        addToast(`Welcome to ProKonnect Demo as ${role === 'business' ? 'Vogue Apparel (Business)' : 'Alex Rivera (Influencer)'}!`, 'success');
+        navigate(role === 'business' ? '/business-dashboard' : '/influencer-dashboard');
+    };
 
     // Theme-aware class helpers
     const bg1 = isDark ? 'bg-[#060913]' : 'bg-gradient-to-br from-slate-50 to-blue-50/40';
@@ -295,6 +303,52 @@ const Landing = () => {
                                 </button>
                             </div>
 
+                            {/* 1-Click Interactive Demo Access */}
+                            <div className="mt-8 p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 backdrop-blur-sm max-w-xl">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                        <Sparkles size={16} className="text-amber-400" />
+                                        <span className="text-xs font-bold uppercase tracking-wider text-amber-400">Interactive Demo Experience</span>
+                                    </div>
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-semibold">Instant Access • No Signup</span>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDirectDemoLogin('business')}
+                                        className="flex items-center gap-3 p-3 rounded-xl border border-white/10 bg-slate-900/60 hover:bg-slate-800/80 hover:border-amber-400/50 transition-all text-left group"
+                                    >
+                                        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shrink-0 shadow-md">
+                                            <Building2 size={18} />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="text-xs font-bold text-white group-hover:text-amber-300 transition-colors flex items-center justify-between">
+                                                <span>Demo Business</span>
+                                                <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                                            </div>
+                                            <p className="text-[11px] text-slate-400 truncate">Vogue Apparel • Post & review deals</p>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDirectDemoLogin('influencer')}
+                                        className="flex items-center gap-3 p-3 rounded-xl border border-white/10 bg-slate-900/60 hover:bg-slate-800/80 hover:border-purple-400/50 transition-all text-left group"
+                                    >
+                                        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-md">
+                                            <Users size={18} />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="text-xs font-bold text-white group-hover:text-purple-300 transition-colors flex items-center justify-between">
+                                                <span>Demo Influencer</span>
+                                                <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                                            </div>
+                                            <p className="text-[11px] text-slate-400 truncate">Alex Rivera • Browse & apply to deals</p>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
                             {/* Trust indicators */}
                             <div className="mt-10 flex items-center gap-6">
                                 <div className="flex -space-x-2.5">
@@ -385,6 +439,30 @@ const Landing = () => {
                                     >
                                         {loginLoading ? 'Signing In...' : 'Sign In to Dashboard'}
                                     </button>
+
+                                    {/* 1-Click Demo Shortcut */}
+                                    <div className="relative my-3 flex items-center">
+                                        <div className="flex-grow border-t border-white/10" />
+                                        <span className="flex-shrink mx-2 text-[10px] uppercase font-bold tracking-wider text-slate-500">Or Explore Demo Directly</span>
+                                        <div className="flex-grow border-t border-white/10" />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDirectDemoLogin('business')}
+                                            className="px-3 py-2 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-bold transition-all text-center"
+                                        >
+                                            Demo Business
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDirectDemoLogin('influencer')}
+                                            className="px-3 py-2 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 text-xs font-bold transition-all text-center"
+                                        >
+                                            Demo Influencer
+                                        </button>
+                                    </div>
 
                                     <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
                                         <span onClick={() => navigate('/forgot-password')} className="cursor-pointer hover:text-brand-400 transition-colors font-medium">Forgot password?</span>

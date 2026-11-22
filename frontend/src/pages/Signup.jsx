@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, ArrowRight, Eye, EyeOff, Zap, CheckCircle2, XCircle, ArrowLeft, ShieldCheck, Sparkles } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Eye, EyeOff, Zap, CheckCircle2, XCircle, ArrowLeft, ShieldCheck, Sparkles, Users, Building2 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 import ThemeToggle from '../components/ThemeToggle';
-import { loginAsDemoRole, setDemoMode } from '../demo/demoMode';
+import { loginAsDemoRole, setDemoMode, isDemoMode } from '../demo/demoMode.js';
 
 const Signup = () => {
     const navigate = useNavigate();
@@ -22,6 +22,7 @@ const Signup = () => {
         navigate(role === 'business' ? '/business-dashboard' : '/influencer-dashboard');
     };
 
+    const [role, setRole] = useState('influencer');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -80,9 +81,20 @@ const Signup = () => {
         }
 
         setLoading(true);
-        const success = await register(formData.name.trim(), formData.email.trim(), formData.password);
+        const cleanEmail = formData.email.trim();
+        const isDemo = isDemoMode() || cleanEmail.endsWith('.demo') || cleanEmail.includes('demo');
+        if (isDemo) {
+            setDemoMode(true);
+        }
+
+        const success = await register(formData.name.trim(), cleanEmail, formData.password, role);
         if (success) {
-            navigate('/role-selection');
+            addToast(`Welcome to ProKonnect, ${formData.name}!`, 'success');
+            if (role === 'business') {
+                navigate('/business-dashboard', { replace: true });
+            } else {
+                navigate('/influencer-dashboard', { replace: true });
+            }
         }
         setLoading(false);
     };
@@ -240,6 +252,60 @@ const Signup = () => {
 
                         {/* Signup Form */}
                         <form onSubmit={handleSubmit} className="space-y-4">
+                            {/* Role Selector: Creator vs Brand */}
+                            <div className="space-y-1.5">
+                                <label className={`block text-[11px] font-bold uppercase tracking-wider ml-1 ${
+                                    isDark ? 'text-slate-400' : 'text-slate-600'
+                                }`}>
+                                    Join As
+                                </label>
+                                <div className="grid grid-cols-2 gap-2.5">
+                                    <button
+                                        type="button"
+                                        onClick={() => setRole('influencer')}
+                                        className={`p-3 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
+                                            role === 'influencer'
+                                                ? isDark
+                                                    ? 'bg-brand-500/20 border-brand-500/70 ring-1 ring-brand-500/50'
+                                                    : 'bg-brand-50 border-brand-400 ring-1 ring-brand-400/50 shadow-sm'
+                                                : isDark
+                                                    ? 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06]'
+                                                    : 'bg-slate-50 border-slate-200 hover:bg-white'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className={`p-1.5 rounded-lg ${role === 'influencer' ? 'bg-orange-500/20 text-orange-400' : 'bg-slate-500/20 text-slate-400'}`}>
+                                                <Users size={16} />
+                                            </div>
+                                            <span className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Creator / Influencer</span>
+                                        </div>
+                                        <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Monetize content & find brand gigs</p>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setRole('business')}
+                                        className={`p-3 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
+                                            role === 'business'
+                                                ? isDark
+                                                    ? 'bg-brand-500/20 border-brand-500/70 ring-1 ring-brand-500/50'
+                                                    : 'bg-brand-50 border-brand-400 ring-1 ring-brand-400/50 shadow-sm'
+                                                : isDark
+                                                    ? 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06]'
+                                                    : 'bg-slate-50 border-slate-200 hover:bg-white'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className={`p-1.5 rounded-lg ${role === 'business' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-500/20 text-slate-400'}`}>
+                                                <Building2 size={16} />
+                                            </div>
+                                            <span className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Brand / Business</span>
+                                        </div>
+                                        <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Hire creators & post campaigns</p>
+                                    </button>
+                                </div>
+                            </div>
+
                             {/* Full Name */}
                             <div className="space-y-1.5">
                                 <label className={`block text-[11px] font-bold uppercase tracking-wider ml-1 ${
