@@ -1,0 +1,225 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   THEME CSS CUSTOM PROPERTIES
+   ============================================ */
+:root {
+  /* Light Mode (default fallback) */
+  --color-bg-primary: #f8fafc;
+  --color-bg-secondary: #ffffff;
+  --color-bg-card: rgba(255, 255, 255, 0.9);
+  --color-border: rgba(0, 0, 0, 0.07);
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-orb-1: rgba(99, 102, 241, 0.08);
+  --color-orb-2: rgba(192, 38, 211, 0.06);
+  --mesh-bg: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 50%, #f0fdf4 100%);
+}
+
+.dark {
+  --color-bg-primary: #060913;
+  --color-bg-secondary: #0B1120;
+  --color-bg-card: rgba(15, 23, 42, 0.7);
+  --color-border: rgba(255, 255, 255, 0.07);
+  --color-text-primary: #e2e8f0;
+  --color-text-secondary: #94a3b8;
+  --color-orb-1: rgba(99, 102, 241, 0.15);
+  --color-orb-2: rgba(192, 38, 211, 0.10);
+  --mesh-bg: radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.12) 0%, transparent 60%),
+             radial-gradient(ellipse at 80% 20%, rgba(192,38,211,0.10) 0%, transparent 55%),
+             #060913;
+}
+
+/* Smooth theme transitions */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 250ms;
+  transition-timing-function: ease;
+}
+/* But NOT for transforms/animations — let those run freely */
+[class*="animate-"], [class*="motion"], canvas, svg {
+  transition: none;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-slate-50 text-slate-900 font-sans antialiased;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+/* ============================================
+   CUSTOM SCROLLBAR - Light
+   ============================================ */
+.custom-scrollbar::-webkit-scrollbar,
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track,
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.45);
+}
+
+/* Dark scrollbar for dashboard / dark backgrounds */
+.dark-scrollbar::-webkit-scrollbar { width: 5px; }
+.dark-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.dark-scrollbar::-webkit-scrollbar-thumb { background: rgba(71,85,105,0.4); border-radius: 10px; }
+.dark-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(100,116,139,0.6); }
+
+/* ============================================
+   ANIMATED GRADIENT TEXT
+   ============================================ */
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-x 4s ease infinite;
+}
+
+/* ============================================
+   FLOATING / LEVITATION ANIMATION
+   ============================================ */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-float-delay { animation: float 6s ease-in-out 2s infinite; }
+
+/* ============================================
+   NOISE TEXTURE OVERLAY
+   ============================================ */
+.noise-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================
+   GLOW UTILITIES
+   ============================================ */
+.glow-brand { box-shadow: 0 0 30px rgba(99, 102, 241, 0.35); }
+.glow-brand-lg { box-shadow: 0 0 60px rgba(99, 102, 241, 0.4); }
+.glow-accent { box-shadow: 0 0 30px rgba(192, 38, 211, 0.35); }
+.glow-text-brand { text-shadow: 0 0 40px rgba(99, 102, 241, 0.6); }
+
+/* ============================================
+   GLASSMORPHISM UTILITIES
+   ============================================ */
+.glass-dark {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.glass-light {
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ============================================
+   GRADIENT BORDER UTILITY
+   ============================================ */
+.gradient-border {
+  position: relative;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(99,102,241,0.5), rgba(192,38,211,0.5), rgba(99,102,241,0.2));
+  z-index: -1;
+}
+
+/* ============================================
+   CARD SHINE EFFECT
+   ============================================ */
+.card-shine {
+  position: relative;
+  overflow: hidden;
+}
+.card-shine::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.04) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  transform: rotate(30deg);
+  transition: transform 0.6s;
+  pointer-events: none;
+}
+.card-shine:hover::after {
+  transform: rotate(30deg) translate(20%, 20%);
+}
+
+/* ============================================
+   SCROLLBAR HIDE
+   ============================================ */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ============================================
+   PULSE RING ANIMATION
+   ============================================ */
+@keyframes ping-slow {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2); opacity: 0; }
+}
+.animate-ping-slow { animation: ping-slow 2s ease-out infinite; }
+
+/* ============================================
+   MESH GRADIENT BACKGROUND
+   ============================================ */
+.mesh-bg {
+  background: 
+    radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(192, 38, 211, 0.1) 0%, transparent 55%),
+    radial-gradient(ellipse at 60% 80%, rgba(79, 70, 229, 0.08) 0%, transparent 50%),
+    #060913;
+}
+
+/* ============================================
+   GRID PATTERN
+   ============================================ */
+.grid-pattern {
+  background-image: 
+    linear-gradient(rgba(128,128,128,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(128,128,128,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}

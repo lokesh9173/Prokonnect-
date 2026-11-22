@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prokonnect-backend
+    restart: always
+    ports:
+      - "127.0.0.1:5001:5001"
+    environment:
+      - NODE_ENV=production
+      - PORT=5001
+      - MONGO_URI=${MONGO_URI:-mongodb://mongo:27017/prokonnect}
+      - JWT_SECRET=${JWT_SECRET}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - CLIENT_URL=${CLIENT_URL}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - FROM_NAME=${FROM_NAME:-}
+      - FROM_EMAIL=${FROM_EMAIL:-}
+    depends_on:
+      - mongo
+    volumes:
+      - uploads_data:/app/backend/uploads
+      - private_uploads_data:/app/backend/private_uploads
+
+  mongo:
+    image: mongo:6.0
+    container_name: prokonnect-mongo
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
+  uploads_data:
+  private_uploads_data:
