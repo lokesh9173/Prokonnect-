@@ -22,6 +22,7 @@ import About from './pages/About';
 import Features from './pages/Features';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
+import DemoBanner from './components/DemoBanner';
 
 import ChatWidget from './components/ChatWidget';
 
@@ -30,6 +31,7 @@ function App() {
     <>
       <Toaster position="top-center" reverseOrder={false} />
       <Router>
+        <DemoBanner />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />

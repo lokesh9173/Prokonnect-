@@ -6,7 +6,7 @@ import { getApiUrl } from '../config/api';
 import {
     Plus, Users, Search, Filter, Megaphone, Tag, MapPin, Calendar,
     ArrowRight, X, Zap, TrendingUp, Eye, MousePointer, Sparkles, ChevronRight,
-    CheckCircle, XCircle, Clock, Mail, Phone, Globe
+    CheckCircle, XCircle, Clock, Mail, Phone, Globe, Edit, Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -37,6 +37,11 @@ const BusinessDashboard = () => {
     const [applicants, setApplicants] = useState([]);
     const [loadingApplicants, setLoadingApplicants] = useState(false);
     const [actionLoadingId, setActionLoadingId] = useState(null);
+
+    // Edit Campaign State
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingPromo, setEditingPromo] = useState(null);
+    const [editSaving, setEditSaving] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -103,6 +108,90 @@ const BusinessDashboard = () => {
             } else throw new Error(savedOffer.message || 'Failed');
         } catch (error) {
             addToast(error.message, 'error');
+        }
+    };
+
+    const handleOpenEditModal = (promo) => {
+        setEditingPromo({
+            ...promo,
+            uiType: promo.type === 'paid' ? 'Paid Collab' : 'Freebie / Perk'
+        });
+        setShowEditModal(true);
+    };
+
+    const handleSaveEdit = async (e) => {
+        e.preventDefault();
+        if (!editingPromo) return;
+        setEditSaving(true);
+        try {
+            const formData = new FormData(e.target);
+            const uiType = formData.get('type');
+            let backendType = 'barter';
+            if (uiType === 'Paid Collab') backendType = 'paid';
+
+            const updatedData = {
+                title: formData.get('title'),
+                type: backendType,
+                category: formData.get('category')?.toLowerCase() || 'other',
+                targetAudience: formData.get('targetAudience')?.toLowerCase() || 'everyone',
+                description: formData.get('description'),
+                price: Number(formData.get('price')) || 0
+            };
+
+            const promoId = editingPromo._id || editingPromo.id;
+            const res = await fetch(getApiUrl(`/api/offers/${promoId}`), {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${user.token}`
+                },
+                body: JSON.stringify(updatedData)
+            });
+
+            const saved = await res.json();
+            if (res.ok) {
+                setPromotions(prev => prev.map(p => {
+                    if ((p._id || p.id) === promoId) {
+                        return { ...p, ...saved };
+                    }
+                    return p;
+                }));
+                setShowEditModal(false);
+                setEditingPromo(null);
+                addToast('Campaign updated successfully! ✨', 'success');
+            } else {
+                throw new Error(saved.message || 'Failed to update campaign');
+            }
+        } catch (err) {
+            addToast(err.message || 'Error updating campaign', 'error');
+        } finally {
+            setEditSaving(false);
+        }
+    };
+
+    const handleDeleteCampaign = async (promo) => {
+        const promoId = promo._id || promo.id;
+        if (!window.confirm(`Are you sure you want to delete "${promo.title}"?`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(getApiUrl(`/api/offers/${promoId}`), {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${user.token}`
+                }
+            });
+
+            if (res.ok) {
+                setPromotions(prev => prev.filter(p => (p._id || p.id) !== promoId));
+                addToast('Campaign deleted successfully', 'success');
+            } else {
+                const data = await res.json();
+                throw new Error(data.message || 'Failed to delete campaign');
+            }
+        } catch (err) {
+            addToast(err.message || 'Error deleting campaign', 'error');
         }
     };
 
@@ -284,13 +373,29 @@ const BusinessDashboard = () => {
                                                     <span className={`w-1.5 h-1.5 rounded-full ${promo.active ? 'bg-emerald-400' : 'bg-slate-500'}`} />
                                                     {promo.active ? 'Live' : 'Ended'}
                                                 </span>
-                                                <button
-                                                    onClick={() => navigate(`/promotion/${promo._id || promo.id}`)}
-                                                    className="text-slate-600 hover:text-brand-400 transition-colors p-1"
-                                                    title="View Public Promotion Page"
-                                                >
-                                                    <ArrowRight size={16} />
-                                                </button>
+                                                <div className="flex items-center gap-1">
+                                                    <button
+                                                        onClick={() => handleOpenEditModal(promo)}
+                                                        className="text-slate-500 hover:text-amber-400 transition-colors p-1 rounded-lg hover:bg-white/[0.06]"
+                                                        title="Edit Campaign"
+                                                    >
+                                                        <Edit size={14} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteCampaign(promo)}
+                                                        className="text-slate-500 hover:text-rose-400 transition-colors p-1 rounded-lg hover:bg-white/[0.06]"
+                                                        title="Delete Campaign"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => navigate(`/promotion/${promo._id || promo.id}`)}
+                                                        className="text-slate-600 hover:text-brand-400 transition-colors p-1"
+                                                        title="View Public Promotion Page"
+                                                    >
+                                                        <ArrowRight size={16} />
+                                                    </button>
+                                                </div>
                                             </div>
                                             <h3 className="font-bold text-white text-sm mb-1 group-hover:text-brand-300 transition-colors line-clamp-1">{promo.title}</h3>
                                             <p className="text-xs text-slate-500 font-medium capitalize mb-4">{promo.type} • {promo.category} • {promo.targetAudience}</p>
@@ -736,6 +841,133 @@ const BusinessDashboard = () => {
                                         className="px-6 py-2.5 bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-bold text-sm rounded-xl hover:shadow-glow-brand transition-all hover:-translate-y-0.5"
                                     >
                                         Post Promotion 🚀
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* ── Edit Promotion Modal ───────────────────────── */}
+            <AnimatePresence>
+                {showEditModal && editingPromo && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4"
+                        onClick={() => setShowEditModal(false)}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.92, y: 30 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.92, y: 30 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                            className="bg-[#0F1929] border border-white/[0.08] w-full max-w-lg rounded-2xl shadow-[0_30px_80px_rgba(0,0,0,0.8)] overflow-hidden"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Modal Header */}
+                            <div className="p-6 border-b border-white/[0.05] flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                                        <Edit size={16} className="text-white" />
+                                    </div>
+                                    <h2 className="text-lg font-bold text-white">Edit Campaign</h2>
+                                </div>
+                                <button onClick={() => setShowEditModal(false)} className="text-slate-500 hover:text-white p-1 rounded-lg hover:bg-white/[0.08] transition-all">
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            {/* Form */}
+                            <form onSubmit={handleSaveEdit} className="p-6 space-y-5 max-h-[70vh] overflow-y-auto dark-scrollbar">
+                                <div>
+                                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">Campaign Title</label>
+                                    <input
+                                        type="text"
+                                        name="title"
+                                        required
+                                        defaultValue={editingPromo.title}
+                                        placeholder="e.g. Summer Staycation for Influencers"
+                                        className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white placeholder:text-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/60 transition-all"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">Category</label>
+                                        <select
+                                            name="category"
+                                            defaultValue={(editingPromo.category || 'other').toLowerCase()}
+                                            className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/60 transition-all appearance-none"
+                                        >
+                                            {['Fashion', 'Gaming', 'Hotel', 'Cafe', 'Tech', 'Brand', 'Other'].map(o => (
+                                                <option key={o} value={o.toLowerCase()} className="bg-slate-900">{o}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">Type</label>
+                                        <select
+                                            name="type"
+                                            defaultValue={editingPromo.type === 'paid' ? 'Paid Collab' : 'Freebie / Perk'}
+                                            className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/60 transition-all appearance-none"
+                                        >
+                                            {['Paid Collab', 'Freebie / Perk', 'Discount Offer', 'Event Invite'].map(o => (
+                                                <option key={o} value={o} className="bg-slate-900">{o}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">Target Audience</label>
+                                        <select
+                                            name="targetAudience"
+                                            defaultValue={(editingPromo.targetAudience || 'everyone').toLowerCase()}
+                                            className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/60 transition-all appearance-none"
+                                        >
+                                            {['Students', 'Influencers', 'Everyone'].map(o => (
+                                                <option key={o} value={o.toLowerCase()} className="bg-slate-900">{o}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">Value / Budget (₹)</label>
+                                        <input
+                                            type="number"
+                                            name="price"
+                                            defaultValue={editingPromo.price || 0}
+                                            placeholder="0"
+                                            className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white placeholder:text-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/60 transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-2">Details & Requirements</label>
+                                    <textarea
+                                        name="description"
+                                        required
+                                        defaultValue={editingPromo.description}
+                                        placeholder="Describe what you're offering and what you expect from the creator..."
+                                        className="w-full px-4 py-3 bg-white/[0.04] border border-white/[0.08] rounded-xl text-white placeholder:text-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/60 transition-all h-28 resize-none"
+                                    />
+                                </div>
+
+                                <div className="flex justify-end gap-3 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowEditModal(false)}
+                                        className="px-5 py-2.5 text-slate-400 font-bold text-sm hover:text-white hover:bg-white/[0.06] rounded-xl transition-all"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={editSaving}
+                                        className="px-6 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white font-bold text-sm rounded-xl hover:shadow-lg transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                                    >
+                                        {editSaving ? 'Saving...' : 'Save Changes ✨'}
                                     </button>
                                 </div>
                             </form>

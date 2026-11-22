@@ -5,6 +5,10 @@ import App from './App.jsx'
 import { ToastProvider } from './context/ToastContext'
 import { UserProvider } from './context/UserContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { initDemoMode } from './demo/demoMode'
+
+// Initialize Demo Mode interception if enabled
+initDemoMode();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

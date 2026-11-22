@@ -6,12 +6,21 @@ import { useUser } from '../context/UserContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 import ThemeToggle from '../components/ThemeToggle';
+import { loginAsDemoRole, setDemoMode } from '../demo/demoMode';
 
 const Signup = () => {
     const navigate = useNavigate();
-    const { register } = useUser();
+    const { register, setUser } = useUser();
     const { isDark } = useTheme();
     const { addToast } = useToast();
+
+    const handleDemoQuickAccess = (role) => {
+        setDemoMode(true);
+        const authData = loginAsDemoRole(role);
+        setUser(authData);
+        addToast(`Exploring as Demo ${role === 'business' ? 'Business (Vogue Apparel)' : 'Influencer (Alex Rivera)'}!`, 'success');
+        navigate(role === 'business' ? '/business-dashboard' : '/influencer-dashboard');
+    };
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -178,6 +187,54 @@ const Signup = () => {
                                         <span>{perk}</span>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+
+                        {/* Quick Demo Mode Access */}
+                        <div className="mb-5">
+                            <div className="flex items-center justify-between mb-2 px-0.5">
+                                <span className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                                    isDark ? 'text-amber-400' : 'text-amber-600'
+                                }`}>
+                                    <Zap size={13} className="fill-amber-400 text-amber-400" />
+                                    <span>Or Explore Immediately</span>
+                                </span>
+                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                                    isDark ? 'bg-amber-500/10 text-amber-300' : 'bg-amber-100 text-amber-700'
+                                }`}>
+                                    Demo Mode
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => handleDemoQuickAccess('business')}
+                                    className={`p-2.5 rounded-xl border text-left transition-all duration-200 ${
+                                        isDark
+                                            ? 'bg-brand-500/10 border-brand-500/30 hover:bg-brand-500/20'
+                                            : 'bg-brand-50 border-brand-200 hover:bg-brand-100'
+                                    }`}
+                                >
+                                    <div className="text-xs font-bold text-brand-400">Demo Business</div>
+                                    <div className={`text-[10px] font-medium truncate ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                                        Vogue Apparel
+                                    </div>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleDemoQuickAccess('influencer')}
+                                    className={`p-2.5 rounded-xl border text-left transition-all duration-200 ${
+                                        isDark
+                                            ? 'bg-accent-500/10 border-accent-500/30 hover:bg-accent-500/20'
+                                            : 'bg-indigo-50 border-indigo-200 hover:bg-indigo-100'
+                                    }`}
+                                >
+                                    <div className="text-xs font-bold text-accent-400">Demo Influencer</div>
+                                    <div className={`text-[10px] font-medium truncate ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                                        Alex Rivera
+                                    </div>
+                                </button>
                             </div>
                         </div>
 

@@ -6,13 +6,14 @@ import { useUser } from '../context/UserContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 import ThemeToggle from '../components/ThemeToggle';
+import { setDemoMode } from '../demo/demoMode';
 
 const DEMO_ACCOUNTS = [
     {
         role: 'influencer',
         label: 'Demo Influencer',
         icon: UserCircle,
-        email: 'sarah@influencer.com',
+        email: 'alex@prokonnect.demo',
         password: 'password123',
         tag: 'Creator Profile'
     },
@@ -20,7 +21,7 @@ const DEMO_ACCOUNTS = [
         role: 'business',
         label: 'Demo Business',
         icon: Building2,
-        email: 'info@grandhotel.com',
+        email: 'vogue@prokonnect.demo',
         password: 'password123',
         tag: 'Brand & Dealmaker'
     }
@@ -43,9 +44,10 @@ const Login = () => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    const handleFillDemo = (acc, autoSubmit = false) => {
+    const handleFillDemo = (acc, autoSubmit = true) => {
         setErrorMessage('');
         setFormData({ email: acc.email, password: acc.password });
+        setDemoMode(true);
         if (autoSubmit) {
             handleLoginSubmit(acc.email, acc.password);
         }
